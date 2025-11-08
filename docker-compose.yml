@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: mythogyan_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: mythogyan
+      POSTGRES_USER: mytho_user
+      POSTGRES_PASSWORD: mytho_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./schema:/docker-entrypoint-initdb.d
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mytho_user -d mythogyan"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  neo4j:
+    image: neo4j:5
+    container_name: mythogyan_neo4j
+    restart: always
+    environment:
+      NEO4J_AUTH: neo4j/neo4jpass
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+
+  adminer:
+    image: adminer
+    container_name: mythogyan_adminer
+    restart: always
+    ports:
+      - "8080:8080"
+
+volumes:
+  pg_data:
+  neo4j_data:
+  neo4j_logs:
