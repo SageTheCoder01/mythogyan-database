@@ -8,6 +8,7 @@ CREATE TABLE graph_sync_status (
     sync_status TEXT DEFAULT 'PENDING'
 );
 
+
 CREATE TABLE audit_logs (
     id SERIAL PRIMARY KEY,
     entity_uuid UUID,
