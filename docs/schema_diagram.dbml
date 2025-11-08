@@ -1,0 +1,164 @@
+//////////////////////////////////////////////////////////////
+// 🕉️ MythoGyan Knowledge Base — ER Diagram
+// Use with dbdiagram.io or DrawSQL
+//////////////////////////////////////////////////////////////
+
+Table characters {
+  uuid uuid [pk]
+  canonical_name text [not null]
+  aliases text[]
+  description text
+  origin text
+  type text
+  gender text
+  alignment text
+  attributes jsonb
+  symbolism jsonb
+  created_at timestamptz
+  updated_at timestamptz
+  is_active boolean
+}
+
+Table relationships {
+  uuid uuid [pk]
+  source_uuid uuid [ref: > characters.uuid]
+  target_uuid uuid [ref: > characters.uuid]
+  relation_type text
+  context text
+  source_reference text
+  confidence_score numeric
+  created_at timestamptz
+}
+
+Table events {
+  uuid uuid [pk]
+  name text
+  description text
+  epoch text
+  location text
+  involved_entities uuid[]
+  start_order int
+  end_order int
+  created_at timestamptz
+}
+
+Table event_participants {
+  id serial [pk]
+  event_uuid uuid [ref: > events.uuid]
+  character_uuid uuid [ref: > characters.uuid]
+  role text
+  context text
+}
+
+Table artifacts {
+  uuid uuid [pk]
+  name text
+  description text
+  material text
+  owner_uuid uuid [ref: > characters.uuid]
+  significance text
+  created_at timestamptz
+}
+
+Table concepts {
+  uuid uuid [pk]
+  name text
+  description text
+  category text
+  symbolism jsonb
+  ethical_polarity text
+  archetype text
+  symbolic_color text
+  cultural_region text
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table concept_hierarchy {
+  id serial [pk]
+  parent_uuid uuid [ref: > concepts.uuid]
+  child_uuid uuid [ref: > concepts.uuid]
+  relation_type text
+  created_at timestamptz
+}
+
+Table entity_concept_tags {
+  id serial [pk]
+  entity_uuid uuid
+  entity_type text
+  concept_uuid uuid [ref: > concepts.uuid]
+  relevance_score numeric
+  context text
+  created_at timestamptz
+}
+
+Table translations {
+  id serial [pk]
+  entity_uuid uuid
+  entity_type text
+  language_code text
+  field_name text
+  translated_text text
+  created_at timestamptz
+}
+
+Table epochs {
+  uuid uuid [pk]
+  name text
+  order_index int
+  description text
+  start_event_uuid uuid [ref: > events.uuid]
+  end_event_uuid uuid [ref: > events.uuid]
+}
+
+Table reincarnations {
+  id serial [pk]
+  previous_uuid uuid [ref: > characters.uuid]
+  next_uuid uuid [ref: > characters.uuid]
+  cycle_order int
+  context text
+  epoch_uuid uuid [ref: > epochs.uuid]
+}
+
+Table traditions {
+  uuid uuid [pk]
+  name text
+  region text
+  description text
+}
+
+Table entity_variants {
+  id serial [pk]
+  base_entity_uuid uuid
+  variant_name text
+  tradition_uuid uuid [ref: > traditions.uuid]
+  variant_details jsonb
+  source_reference text
+}
+
+Table graph_sync_status {
+  entity_uuid uuid [pk]
+  entity_type text
+  last_synced_at timestamptz
+  sync_status text
+}
+
+//////////////////////////////////////////////////////////////
+// 🕸️ Relationships (visual hints)
+//////////////////////////////////////////////////////////////
+
+Ref: relationships.source_uuid > characters.uuid
+Ref: relationships.target_uuid > characters.uuid
+Ref: events.involved_entities > characters.uuid
+Ref: event_participants.character_uuid > characters.uuid
+Ref: event_participants.event_uuid > events.uuid
+Ref: artifacts.owner_uuid > characters.uuid
+Ref: concept_hierarchy.parent_uuid > concepts.uuid
+Ref: concept_hierarchy.child_uuid > concepts.uuid
+Ref: entity_concept_tags.concept_uuid > concepts.uuid
+Ref: reincarnations.previous_uuid > characters.uuid
+Ref: reincarnations.next_uuid > characters.uuid
+Ref: reincarnations.epoch_uuid > epochs.uuid
+Ref: epochs.start_event_uuid > events.uuid
+Ref: epochs.end_event_uuid > events.uuid
+Ref: entity_variants.tradition_uuid > traditions.uuid
