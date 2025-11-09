@@ -1,0 +1,272 @@
+// MythoGyan Knowledge Base — Expanded DBML
+// Future-ready: character-centric, Indian mythology, lineage, media, audit/versioning
+
+Table characters {
+  uuid uuid [pk]
+  canonical_name text [not null]
+  aliases text[]
+  description text
+  origin text
+  caste_or_role text
+  type text
+  gender text
+  alignment text
+  attributes jsonb
+  symbolism jsonb
+  source_texts text[]
+  birth_event_uuid uuid [ref: > events.uuid]
+  death_event_uuid uuid [ref: > events.uuid]
+  father_uuid uuid [ref: > characters.uuid]
+  mother_uuid uuid [ref: > characters.uuid]
+  created_at timestamptz
+  updated_at timestamptz
+  is_active boolean
+}
+
+Table relationship_types {
+  uuid uuid [pk]
+  name text
+  description text
+  category text
+  created_at timestamptz
+}
+
+Table relationships {
+  uuid uuid [pk]
+  source_uuid uuid [ref: > characters.uuid]
+  target_uuid uuid [ref: > characters.uuid]
+  relation_type_uuid uuid [ref: > relationship_types.uuid]
+  context text
+  source_reference text
+  confidence_score numeric
+  is_bidirectional boolean
+  created_at timestamptz
+}
+
+Table events {
+  uuid uuid [pk]
+  name text
+  description text
+  epoch_uuid uuid [ref: > epochs.uuid]
+  location_uuid uuid [ref: > locations.uuid]
+  start_order int
+  end_order int
+  event_type text
+  parent_event_uuid uuid [ref: > events.uuid]
+  created_at timestamptz
+}
+
+Table event_participants {
+  id serial [pk]
+  event_uuid uuid [ref: > events.uuid]
+  character_uuid uuid [ref: > characters.uuid]
+  role text
+  context text
+}
+
+Table locations {
+  uuid uuid [pk]
+  name text
+  type text
+  description text
+  latitude numeric
+  longitude numeric
+  current_country text
+  created_at timestamptz
+}
+
+Table artifacts {
+  uuid uuid [pk]
+  name text
+  description text
+  type text
+  material text
+  owner_uuid uuid [ref: > characters.uuid]
+  creator_uuid uuid [ref: > characters.uuid]
+  significance text
+  powers jsonb
+  source_reference text
+  created_at timestamptz
+}
+
+Table powers {
+  uuid uuid [pk]
+  name text
+  description text
+  granted_by_uuid uuid [ref: > characters.uuid]
+  received_by_uuid uuid [ref: > characters.uuid]
+  type text
+  context text
+  source_reference text
+  created_at timestamptz
+}
+
+Table temples {
+  uuid uuid [pk]
+  name text
+  location_uuid uuid [ref: > locations.uuid]
+  dedicated_to_uuid uuid [ref: > characters.uuid]
+  description text
+  festival_associations text[]
+  created_at timestamptz
+}
+
+Table trainings {
+  uuid uuid [pk]
+  student_uuid uuid [ref: > characters.uuid]
+  teacher_uuid uuid [ref: > characters.uuid]
+  location_uuid uuid [ref: > locations.uuid]
+  subjects text[]
+  context text
+  start_event_uuid uuid [ref: > events.uuid]
+  end_event_uuid uuid [ref: > events.uuid]
+  created_at timestamptz
+}
+
+Table festivals {
+  uuid uuid [pk]
+  name text
+  description text
+  associated_event_uuid uuid [ref: > events.uuid]
+  associated_character_uuid uuid [ref: > characters.uuid]
+  month text
+  cultural_region text
+  created_at timestamptz
+}
+
+Table epochs {
+  uuid uuid [pk]
+  name text
+  order_index int
+  description text
+  start_event_uuid uuid [ref: > events.uuid]
+  end_event_uuid uuid [ref: > events.uuid]
+  yuga_type text
+}
+
+Table reincarnations {
+  id serial [pk]
+  previous_uuid uuid [ref: > characters.uuid]
+  next_uuid uuid [ref: > characters.uuid]
+  cycle_order int
+  context text
+  epoch_uuid uuid [ref: > epochs.uuid]
+}
+
+Table concepts {
+  uuid uuid [pk]
+  name text
+  description text
+  category text
+  symbolism jsonb
+  ethical_polarity text
+  archetype text
+  symbolic_color text
+  cultural_region text
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table entity_concept_tags {
+  id serial [pk]
+  entity_uuid uuid
+  entity_type text
+  concept_uuid uuid [ref: > concepts.uuid]
+  relevance_score numeric
+  context text
+  created_at timestamptz
+}
+
+Table media {
+  uuid uuid [pk]
+  entity_uuid uuid
+  entity_type text
+  media_type text
+  url text
+  caption text
+  playlist text
+  created_at timestamptz
+}
+
+Table entity_history {
+  id serial [pk]
+  entity_uuid uuid
+  entity_type text
+  field_name text
+  old_value text
+  new_value text
+  changed_by text
+  changed_at timestamptz
+}
+
+Table graph_sync_status {
+  entity_uuid uuid [pk]
+  entity_type text
+  last_synced_at timestamptz
+  sync_status text
+}
+
+Table battles {
+  uuid uuid [pk]
+  name text
+  description text
+  epoch_uuid uuid [ref: > epochs.uuid]
+  location_uuid uuid [ref: > locations.uuid]
+  start_order int
+  end_order int
+  outcome text      // e.g., Victory, Defeat, Draw
+  created_at timestamptz
+}
+
+Table battle_participants {
+  id serial [pk]
+  battle_uuid uuid [ref: > battles.uuid]
+  character_uuid uuid [ref: > characters.uuid]
+  role text            // e.g., Warrior, Commander, Support
+  side text            // e.g., Allies, Enemies
+  weapon_uuid uuid [ref: > artifacts.uuid]
+  powers_used jsonb
+  context text
+  created_at timestamptz
+}
+
+Ref: battles.epoch_uuid > epochs.uuid
+Ref: battles.location_uuid > locations.uuid
+Ref: battle_participants.battle_uuid > battles.uuid
+Ref: battle_participants.character_uuid > characters.uuid
+Ref: battle_participants.weapon_uuid > artifacts.uuid
+
+Ref: relationships.source_uuid > characters.uuid
+Ref: relationships.target_uuid > characters.uuid
+Ref: relationships.relation_type_uuid > relationship_types.uuid
+Ref: characters.father_uuid > characters.uuid
+Ref: characters.mother_uuid > characters.uuid
+Ref: characters.birth_event_uuid > events.uuid
+Ref: characters.death_event_uuid > events.uuid
+Ref: events.epoch_uuid > epochs.uuid
+Ref: events.parent_event_uuid > events.uuid
+Ref: events.location_uuid > locations.uuid
+Ref: event_participants.event_uuid > events.uuid
+Ref: event_participants.character_uuid > characters.uuid
+Ref: artifacts.owner_uuid > characters.uuid
+Ref: artifacts.creator_uuid > characters.uuid
+Ref: powers.granted_by_uuid > characters.uuid
+Ref: powers.received_by_uuid > characters.uuid
+Ref: trainings.student_uuid > characters.uuid
+Ref: trainings.teacher_uuid > characters.uuid
+Ref: trainings.location_uuid > locations.uuid
+Ref: trainings.start_event_uuid > events.uuid
+Ref: trainings.end_event_uuid > events.uuid
+Ref: temples.dedicated_to_uuid > characters.uuid
+Ref: temples.location_uuid > locations.uuid
+Ref: festivals.associated_event_uuid > events.uuid
+Ref: festivals.associated_character_uuid > characters.uuid
+Ref: reincarnations.previous_uuid > characters.uuid
+Ref: reincarnations.next_uuid > characters.uuid
+Ref: reincarnations.epoch_uuid > epochs.uuid
+Ref: entity_concept_tags.concept_uuid > concepts.uuid
+Ref: battles.epoch_uuid > epochs.uuid
+Ref: battles.location_uuid > locations.uuid
+Ref: battle_participants.battle_uuid > battles.uuid
+Ref: battle_participants.character_uuid > characters.uuid
+Ref: battle_participants.weapon_uuid > artifacts.uuid

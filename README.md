@@ -42,6 +42,8 @@ mythogyan-database/
 │   ├── 06_graph_views.sql
 │   ├── 07_indexes.sql
 │   └── 08_seed_data.sql
+│   └── 09_temporal_regional.sql
+│   └── 10_sync_and_integrity.sql
 │
 ├── 📂 migrations/                 # Flyway migration scripts
 │   ├── V1__init.sql
